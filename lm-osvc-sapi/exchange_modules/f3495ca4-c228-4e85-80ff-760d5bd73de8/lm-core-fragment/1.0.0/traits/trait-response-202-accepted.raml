@@ -1,0 +1,15 @@
+#%RAML 1.0 Trait
+
+uses:
+  libraryDataTypes: ../libraries/libraries.raml
+
+responses:
+  202:
+    description: Accepted
+    headers:
+      content-type:
+        description: Accepted
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-202-accepted.json

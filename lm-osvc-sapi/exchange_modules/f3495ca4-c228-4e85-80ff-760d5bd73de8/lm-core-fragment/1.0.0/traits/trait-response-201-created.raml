@@ -1,0 +1,15 @@
+#%RAML 1.0 Trait
+
+uses:
+  libraryDataTypes: ../libraries/libraries.raml
+
+responses:
+  201:
+    description: Created
+    headers:
+      content-type:
+        description: Created
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-201-created.json

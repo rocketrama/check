@@ -1,0 +1,15 @@
+#%RAML 1.0 Trait
+
+uses:
+  libraryDataTypes: ../libraries/libraries.raml
+
+responses:
+  200:
+    description: OK
+    headers:
+      content-type:
+        description: OK
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-200-ok.json

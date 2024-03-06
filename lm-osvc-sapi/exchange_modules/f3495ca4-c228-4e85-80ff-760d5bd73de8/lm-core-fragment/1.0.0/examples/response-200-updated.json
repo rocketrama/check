@@ -1,0 +1,7 @@
+{
+  "code": "UPDATED",
+  "message": "<<resourcePathName | !singularize | !uppercamelcase>> updated successfully",
+  "details": {
+    "id": "1234567"
+  }
+}

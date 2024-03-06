@@ -1,0 +1,12 @@
+#%RAML 1.0 SecurityScheme
+type: x-custom
+displayName: Client ID Enforcement Policy
+description: The Client ID Enforcement policy restricts access to a protected resource by allowing requests only from registered client applications.
+describedBy:
+  headers:
+    client_id:
+      description: Client Id
+      type: string
+    client_secret:
+      description: Client Secret
+      type: string

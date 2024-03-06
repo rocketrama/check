@@ -1,0 +1,104 @@
+#%RAML 1.0 Trait
+
+uses:
+  libraryDataTypes: ../libraries/libraries.raml
+responses:         
+  400: 
+    description: Bad Request
+    headers:
+      content-type:
+        description: Bad Request
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-400-bad-request.json
+
+  401:
+    description: Unauthorized
+    headers:
+      content-type:
+        description: Unauthorized
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-401-unauthorized.json
+
+  403:
+    description: Forbidden
+    headers:
+      content-type:
+        description: Forbidden
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-403-forbidden.json
+
+  404:
+    description: Not Found
+    headers:
+      content-type:
+        description: Not Found
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-404-not-found.json
+
+  405:
+    description: Method Not Allowed
+    headers:
+      content-type:
+        description: Method Not Allowed
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-405-method-not-allowed.json
+
+  406:
+    description: Not Acceptable
+    headers:
+      content-type:
+        description: Not Acceptable
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-406-not-acceptable.json
+                   
+  415:
+    description: Unsupported Media Type
+    headers:
+      content-type:
+        description: Unsupported Media Type
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-415-unsupported-media-type.json
+       
+  500:
+    description: Internal Server Error
+    headers:
+      content-type:
+        description: Internal Server Error
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-500-server-error.json
+
+  502:
+    description: Bad Gateway
+    headers:
+      content-type:
+        description: Bad Gateway
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-502-bad-gateway.json
+
+  504:
+    description: Gateway Time-out
+    headers:
+      content-type:
+        description: Gateway Time-out
+    body:
+      application/json:
+        type: libraryDataTypes.generalRes
+        example: !include ../examples/response-504-gateway-time-out.json

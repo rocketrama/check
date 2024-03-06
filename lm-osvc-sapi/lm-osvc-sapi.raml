@@ -1,0 +1,38 @@
+#%RAML 1.0
+title: lm-osvc-sapi
+description: This Api describe about the address details(osvc) of the E-commerce System Api.
+version: v1
+documentation: 
+  - !include documentation.raml
+uses:
+  libraryCommonFragments: /exchange_modules/f3495ca4-c228-4e85-80ff-760d5bd73de8/lm-core-fragment/1.0.0/lm-core-fragment.raml
+
+securedBy: 
+  - libraryCommonFragments.clientId
+
+types:
+  osvc: !include /dataTypes/osvcDataType.raml
+
+/address/{pincode}:
+  uriParameters:
+    pincode:
+      type: number
+  get:
+    description: Retrive from the data osvc databae to the system api.
+    displayName: Retrive the data.
+    is: [libraryCommonFragments.commonErrorResponses]
+    queryParameters:
+      pincode:
+        type: number
+        description: retrive by using pincode.
+        required: false
+    responses:
+      200:
+        description: Ok
+        headers:
+          content-type:
+            description: Ok
+        body:
+          application/json:
+            type: osvc
+            example: !include /examples/example-get-osvc.json

@@ -1,0 +1,7 @@
+{
+  "code": "SUCCESS",
+  "message": "<<resourcePathName | !singularize | !uppercamelcase>> created successfully",
+  "details": {
+    "id": "1234567"
+  }
+}

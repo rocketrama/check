@@ -1,0 +1,14 @@
+#%RAML 1.0 Library
+usage: Common fragments to be used in API Specifications.
+
+securitySchemes:
+  clientId: !include securitySchemes/security-scheme-client-id-enforcement.raml
+
+traits:
+  commonErrorResponses: !include traits/trait-error-responses.raml
+  clientIdEnforced: !include traits/trait-header-client-id-secret.raml
+  responseOk: !include traits/trait-response-200-ok.raml
+  responseCreated: !include traits/trait-response-201-created.raml
+  responseAccepted: !include traits/trait-response-202-accepted.raml
+  responseUpdated: !include traits/trait-response-200-updated.raml
+  responseDeleted: !include traits/trait-response-204-deleted.raml

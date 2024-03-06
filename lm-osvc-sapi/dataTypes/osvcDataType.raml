@@ -1,0 +1,55 @@
+#%RAML 1.0 DataType
+
+type: object
+displayName: OSVC Datatype
+description: This is a osvc's datatype
+properties:
+  houseNo:
+    type: string
+    displayName: House number
+    description: This houseNo field shows the house number of the address.
+    required: false
+    example: "1/2"
+  address1:
+    type: string
+    displayName: Address1
+    description: This address1 field shows street,village details of the address.
+    required: false
+    example: "Gandhi street,chatram"
+  address2:
+    type: string
+    displayName: Address2
+    description: This address2 field shows street,village details of the address. It is optional.
+    required: false
+    example: "optional"
+  pincode:
+    type: number
+    displayName: Pincode
+    description: This address2 field shows pincode details of the address.
+    required: false
+    example: 600000
+  town:
+    type: string
+    displayName: Towm
+    description: This town field shows town details of the address.
+    required: false
+    example: "Namakkal"
+  city:
+    type: string
+    displayName: City
+    description: This city field shows city details of the address.
+    required: false
+    example: "Namakkal"
+  state:
+    type: string
+    displayName: State
+    description: This state field shows state details of the address.
+    required: false
+    example: "TamilNadu"
+  country:
+    type: string
+    displayName: Country
+    description: This country field shows country details of the address.
+    required: false
+    example: "India"
+additionalProperties: false

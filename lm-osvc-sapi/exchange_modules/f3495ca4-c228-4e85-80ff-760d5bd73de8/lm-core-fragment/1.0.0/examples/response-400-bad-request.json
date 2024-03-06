@@ -1,0 +1,4 @@
+{
+  "code": "FAILURE",
+  "message": "Mandatory field xyz is missing from the request"
+}

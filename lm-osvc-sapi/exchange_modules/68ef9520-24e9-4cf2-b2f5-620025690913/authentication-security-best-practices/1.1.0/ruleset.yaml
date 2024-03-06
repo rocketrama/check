@@ -1,0 +1,594 @@
+#%Validation Profile 1.0
+profile: Authentication Security Best Practices
+description: This ruleset contains a set of 14 security best practices for API
+  authentication.
+violation:
+  - access-tokens-oauth2-cleartext
+  - api-keys-in-cookie
+  - api-keys-in-header
+  - api-keys-in-query
+  - api-negotiates-authentication
+  - bearer-token-cleartext
+  - http-token-cleartext
+  - insecure-basic-auth
+  - insecure-oauth2-grants
+  - oauth1-deprecated
+  - oauth2-redirections-non-encrypted
+  - security-fields-operation-empty
+  - unknown-security-scheme
+  - valid-oauth2-redirection-urls
+  - valid-server-urltemplate
+tags:
+  - security
+  - best-practices
+validations:
+  access-tokens-oauth2-cleartext:
+    message: Server Uri should be https.
+    documentation: >
+      Access tokens from authorization code grant flow are transported
+      in the clear over an unencrypted channel.
+
+      Attackers can easily intercept API calls and retrieve the unencrypted tokens. They can then use the tokens to make
+
+      other API calls.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        security.security / security.schemes / security.scheme / security.type:
+          pattern: OAuth 2.0
+    then:
+      propertyConstraints:
+        apiContract.server / core.urlTemplate:
+          pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  api-keys-in-cookie:
+    message: |
+      API keys should not be transported in cookies.
+    documentation: >
+      Your API accepts API keys that are transported in a header over
+      the network. Because the credentials are sent over
+
+      the network on each API call, they are repeatedly exposed to unauthorized attempts to retrieve them.
+    targetClass: security.SecurityScheme
+    not:
+      propertyConstraints:
+        security.settings / security.in:
+          pattern: cookie
+    examples:
+      valid: |
+        components:
+          securitySchemes:
+            api_key:
+              type: apiKey
+              name: X-API-KEY
+              in: header
+      invalid: |
+        components:
+          securitySchemes:
+            api_key:
+              type: apiKey
+              name: X-API-KEY
+              in: cookie
+  api-keys-in-header:
+    message: >
+      API keys should not be sent in cleartext in a header over an
+      unencrypted channel.
+    documentation: >
+      Your API accepts API keys sent in cleartext in a header over an
+      unencrypted channel. Attackers can easily intercept
+
+      API calls and retrieve the credentials. They can then use the credentials to make other API calls.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        security.security / security.schemes / security.scheme / security.settings / security.in:
+          pattern: header
+    then:
+      propertyConstraints:
+        apiContract.server / core.urlTemplate:
+          pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  api-keys-in-query:
+    message: |
+      API keys should not be transported in query parameters.
+    documentation: >
+      Your API accepts API keys that are transported in query
+      parameters over the network. Because the credentials are sent over
+
+      the network on each API call, they are repeatedly exposed to unauthorized attempts to retrieve them. Additionally,
+
+      the API key could become visible in the logs that web servers and proxies produce on URLs.
+    targetClass: security.SecurityScheme
+    not:
+      propertyConstraints:
+        security.settings / security.in:
+          pattern: query
+    examples:
+      valid: |
+        components:
+          securitySchemes:
+            api_key:
+              type: apiKey
+              name: X-API-KEY
+              in: header
+      invalid: |
+        components:
+          securitySchemes:
+            api_key:
+              type: apiKey
+              name: X-API-KEY
+              in: query
+  api-negotiates-authentication:
+    message: >
+      Your API negotiates authentication with a remote SPNEGO-based system.
+      This could pose a security risk. Please use a more secure authentication
+      method, like OAuth 2.0.
+    documentation: >
+      Your API negotiates authentication with a remote Simple And
+      Protected Negotiate (SPNEGO)-based system.
+
+
+      The most common systems used in negotiating authentication are Kerberos and the now obsolete NTLM (New Technology LAN Manager).
+
+      The severity of this risk heavily depends on the which system is used. While Kerberos is reasonably secure, NTLM is not.
+
+      Because your API cannot know which system it is negotiating with, the only safe option is to treat all negotiations
+
+      as insecure.
+
+
+      Use a more secure authentication method, like OAuth 2.0. It uses access tokens with limited lifetime and authorizations
+
+      (the scopes) granted that the resource owner grants from an authorization server.
+    targetClass: security.SecurityScheme
+    not:
+      propertyConstraints:
+        security.settings / security.scheme:
+          pattern: negotiate
+    examples:
+      valid: |
+        securitySchemes:
+          petstore_auth:
+            type: oauth2
+            flows:
+              implicit:
+                authorizationUrl: https://example.com/api/oauth/dialog
+                scopes:
+                  'read:pets': read your pets
+      invalid: |
+        securitySchemes:
+          spnego_auth:
+            type: http
+            scheme: negotiate
+  bearer-token-cleartext:
+    message: |
+      Bearer tokens must be transported over an encrypted channel
+    documentation: >
+      Bearer tokens from OAuth 2.0 authorization flows are transported
+      in the clear over an unencrypted channel.
+
+      Attackers can easily intercept API calls and retrieve the unencrypted tokens. They can then use the tokens to
+
+      make other API calls.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        security.security / security.schemes / security.scheme:
+          nested:
+            and:
+              - propertyConstraints:
+                  security.type:
+                    pattern: http
+              - propertyConstraints:
+                  security.settings / security.scheme:
+                    pattern: bearer
+    then:
+      propertyConstraints:
+        apiContract.server / core.urlTemplate:
+          pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  http-token-cleartext:
+    message: >
+      Your API should not accept credentials sent in cleartext over an
+      unencrypted channel.
+    documentation: >
+      Your API accepts credentials sent in cleartext over an
+      unencrypted channel. Attackers can easily intercept
+
+      API calls and retrieve the unencrypted tokens. They can then use the tokens to make other API calls.
+
+
+      For a secure alternative HTTP authentication method, use a method included in the IANA Authentication Scheme Registry.
+
+
+      These schemes aim to address the shortcomings of basic and digest authentication and include the following:
+
+        - HTTP Origin-Bound Authentication (HOBA) (RFC 7486)
+        - Mutual Authentication Protocol for HTTP (RFC 8120)
+        - Salted Challenge Response HTTP Authentication Mechanism (SCRAM) (RFC 7804)
+          - SCRAM-SHA-1
+          - SCRAM-SHA-256
+        - Voluntary Application Server Identification (VAPID) for Web Push (RFC 8292)
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        security.security / security.schemes / security.scheme:
+          nested:
+            and:
+              - propertyConstraints:
+                  security.type:
+                    pattern: http
+              - propertyConstraints:
+                  security.settings / security.scheme:
+                    in:
+                      - hoba
+                      - mutual
+                      - scram-sha-1
+                      - SCRAM-SHA-1
+                      - scram-sha-256
+                      - SCRAM-SHA-256
+                      - vapid
+                      - digest
+    then:
+      propertyConstraints:
+        apiContract.server / core.urlTemplate:
+          pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  insecure-basic-auth:
+    message: >
+      Your API shoult not accept basic authentication credentials sent in
+      cleartext over an unencrypted channel.
+    documentation: >
+      Your API accepts basic authentication credentials sent in
+      cleartext over an unencrypted channel. Attackers can
+
+      easily intercept API calls and retrieve the credentials. They can then use the credentials to make other API calls.
+    targetClass: apiContract.Operation
+    if:
+      propertyConstraints:
+        security.security / security.schemes / security.scheme:
+          nested:
+            and:
+              - propertyConstraints:
+                  security.type:
+                    pattern: http
+              - propertyConstraints:
+                  security.settings / security.scheme:
+                    pattern: basic
+    then:
+      propertyConstraints:
+        apiContract.server / core.urlTemplate:
+          pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  insecure-oauth2-grants:
+    message: Avoid OAuth2 implicit and resource owner password grants.
+    targetClass: security.OAuth2Settings
+    and:
+      - not:
+          propertyConstraints:
+            security.flows / security.flow:
+              in:
+                - implicit
+                - password
+      - not:
+          propertyConstraints:
+            security.authorizationGrant:
+              in:
+                - implicit
+                - password
+    examples:
+      valid: |
+        securitySchemes:
+          OAuth2:
+            type: oauth2
+            flows:
+              authorizationCode:
+                authorizationUrl: https://example.com/oauth/authorize
+                tokenUrl: https://example.com/oauth/token
+                scopes: 
+                  'read:pets': read your pets
+                  'write:pets': modify pets in your account
+      invalid: |
+        securitySchemes:
+          OAuth2:
+            type: oauth2
+            flows:
+              implicit:
+                authorizationUrl: https://example.com/oauth/authorize
+                scopes: 
+                  'read:pets': read your pets
+                  'write:pets': modify pets in your account
+  oauth1-deprecated:
+    message: >
+      One or more global security schemes in your API allows using OAuth 1.0
+      authentication.
+    documentation: >
+      One or more global security schemes in your API allows using
+      OAuth 1.0 authentication.
+
+
+      This is a potential risk, because the definition is in security schemes. However, it easily turns into an actual
+
+      risk when the unsafe method is used in a security requirement.
+    targetClass: security.SecurityScheme
+    and:
+      - not:
+          propertyConstraints:
+            security.settings / security.scheme:
+              pattern: oauth
+      - not:
+          propertyConstraints:
+            security.type:
+              pattern: OAuth 1.0
+    examples:
+      valid: |
+        securitySchemes:
+          OAuth2:
+            type: oauth2
+            flows:
+              authorizationCode:
+                authorizationUrl: https://example.com/oauth/authorize
+                tokenUrl: https://example.com/oauth/token
+      invalid: |
+        securitySchemes:
+          OAuth1:
+            type: oauth1
+  oauth2-redirections-non-encrypted:
+    message: Oauth2 redirection flows use non encrypted transport
+    targetClass: security.OAuth2Flow
+    and:
+      - propertyConstraints:
+          security.accessTokenUri:
+            pattern: ^https:.*$
+      - propertyConstraints:
+          security.authorizationUri:
+            pattern: ^https:.*$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: http://api.example.com/v1
+  security-fields-operation-empty:
+    message: |
+      The security field of the operation {{core.name}} should not be empty.
+    documentation: >
+      This field should not be empty. If you leave the security field
+      of the operation empty, anyone
+
+      can use the API operation. All they need to know is the URL for the API operation and how to invoke it. 
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      security.security:
+        minCount: 1
+    examples:
+      valid: |
+        /pets:
+          get:
+            summary: List all pets
+            operationId: listPets
+            responses:
+              '200':
+                description: A string response.
+                content:
+                  application/json:    
+                    schema:
+                      type: string
+            security:
+              - OAuth2AuthCode: []
+      invalid: |
+        /pets:
+          get:
+            summary: List all pets
+            operationId: listPets
+            responses:
+              '200':
+                description: A string response.
+                content:
+                  application/json:    
+                    schema:
+                      type: string
+  unknown-security-scheme:
+    message: >
+      One or more global security schemes in your API are not allowed by IANA
+      Authentication Scheme Registry.
+    documentation: >
+      One or more global security schemes in your API allows setting
+      HTTP authentication methods that are not included
+
+      in IANA Authentication Scheme Registry.
+
+
+      This is a potential risk, because the definition is in security schemes. However, it easily turns into an actual
+
+      risk when the unsafe method is used in a security requirement.
+    targetClass: security.SecurityScheme
+    if:
+      propertyConstraints:
+        security.type:
+          in:
+            - http
+    then:
+      propertyConstraints:
+        security.settings / security.scheme:
+          in:
+            - basic
+            - bearer
+            - digest
+            - hoba
+            - mutual
+            - scram-sha-1
+            - SCRAM-SHA-1
+            - scram-sha-256
+            - SCRAM-SHA-256
+            - vapid
+            - negotiate
+            - oauth
+    examples:
+      valid: |
+        components:
+          securitySchemes:
+            UnknownAuth:
+              type: http
+              scheme: basic
+      invalid: |
+        components:
+          securitySchemes:
+            UnknownAuth:
+              type: http
+              scheme: unknown
+  valid-oauth2-redirection-urls:
+    message: >
+      Either the authorization or access token URLs for OAuth2 are not valid
+      URLs.
+    documentation: >
+      Your API accepts basic credentials transported over the network.
+      All URLs in the API contract must be proper URLs
+
+      in a valid format.
+    targetClass: security.OAuth2Flow
+    and:
+      - propertyConstraints:
+          security.accessTokenUri:
+            pattern: ^(https?:\/\/)?[-A-Za-z0-9+&@#\/%?=~_|!:,.;]+[-A-Za-z0-9+&@#\/%=~_|]$
+      - propertyConstraints:
+          security.authorizationUri:
+            pattern: ^(https?:\/\/)?[-A-Za-z0-9+&@#\/%?=~_|!:,.;]+[-A-Za-z0-9+&@#\/%=~_|]$
+    examples:
+      valid: |
+        components:
+          securitySchemes:
+            OAuth2:
+              type: oauth2
+              flows:
+                authorizationCode:
+                  authorizationUrl: https://auth.example.com/authorize
+                  tokenUrl: https://auth.example.com/token
+      invalid: |
+        securitySchemes:
+          OAuth2:
+            type: oauth2
+            flows:
+              authorizationCode:
+                authorizationUrl: thisisnotallowed:*inanurl/*\-+
+                tokenUrl: thisisnotallowed:*inanurl/*\-+
+  valid-server-urltemplate:
+    message: |
+      The Server URL '{{core.name}}' must be a valid URL.
+    documentation: >
+      Your API accepts basic credentials transported over the network.
+      All URLs in the API contract must be proper URLs
+
+      in a valid format.
+    targetClass: apiContract.Server
+    propertyConstraints:
+      core.urlTemplate:
+        pattern: ^(https?:\/\/)?[-A-Za-z0-9+&@#\/%?=~_|!:,.;\{\}]+[-A-Za-z0-9+&@#\/%=~_|\{\}]$
+    examples:
+      valid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://api.example.com/v1
+      invalid: |
+        openapi: 3.0.0
+        info:
+          title: My API
+          description: This is a sample API
+          version: 1.0.0
+        servers:
+          - url: https://somethinginvalidlikethis:**--++\\.com/v1
